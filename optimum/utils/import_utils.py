@@ -26,10 +26,19 @@ from transformers.utils import is_torch_available
 
 
 def _is_package_available(pkg_name: str, return_version: bool = False) -> Union[Tuple[bool, str], bool]:
-    # Check we're not importing a "pkg_name" directory somewhere but the actual library by trying to grab the version
+    """
+    Checks if a package is available with the given name.
+    I.e. if there is something to import with `import pkg_name`.
+    If `return_version` is set to `True`, it will also return the version of the package if it is available.
+    To do so, the name of installed library must be the same as the package name.
+    So `return_version` won't work for some libraries e.g.:
+    - `faiss` (installed as `faiss-cpu` or `faiss-gpu`)
+    - `onnxruntime` (installed as `onnxruntime` or `onnxruntime-gpu`)
+    - `cupy` (installed as `cupy` or `cupy-cuda11x`, `cupy-cuda12x`. `cupy-rocm-5-0`, etc.)
+    """
     package_exists = importlib.util.find_spec(pkg_name) is not None
     package_version = "N/A"
-    if package_exists:
+    if package_exists and return_version:
         try:
             package_version = importlib.metadata.version(pkg_name)
             package_exists = True
